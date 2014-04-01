@@ -7,6 +7,7 @@
  * Copyright (c) 2014 neoScores
  * Licensed under the MIT license.
  */
+ 'use strict';
 
 var builder = require('xmlbuilder'),
   sax     = require('sax'),
@@ -29,10 +30,11 @@ function assignOrderNumber(obj, name, parent) {
     if (!(orderNumberKey in parent)) {
       parent[orderNumberKey] = 0;
 
-      for (var child in parent) {
-        if (specialKeys.indexOf(child) !== -1) {
-          continue;
-        }
+      for (var child in parent)
+        if (parent.hasOwnProperty(child)) {
+          if (specialKeys.indexOf(child) !== -1) {
+            continue;
+          }
 
         parent[orderNumberKey]++;
         parent[child][orderkey] = parent[orderNumberKey];
@@ -85,14 +87,13 @@ Parser.prototype.open = function(node) {
   obj[charkey] = '';
 
   // Iterate over all the attributes
-  for (key in node.attributes) {
-    if (!(attrkey in obj)) {
-      obj[attrkey] = {};
+  for (key in node.attributes) 
+    if (node.attributes.hasOwnProperty(key)) {
+      if (!(attrkey in obj)) {
+        obj[attrkey] = {};
+      }
+      obj[attrkey][key] = node.attributes[key];
     }
-
-    obj[attrkey][key] = node.attributes[key];
-  }
-
   this.stack.push(obj);
 };
 
@@ -169,35 +170,43 @@ function toXML(root, el, nodeName) {
     return element.text(el);
   }
 
-  for (i in el) {
-    switch (i) {
-      // Set attributes of node
-      case '$':
-        for (attr in el[i]) {
-          element.attribute(attr, el[i][attr]);
-        }
-      break;
+  for (i in el)
+    if (el.hasOwnProperty(i)) {
+      switch (i) {
+        // Set attributes of node
+        case '$':
+          for (attr in el[i])
+            if (el[i].hasOwnProperty(attr)){
+              element.attribute(attr, el[i][attr]);
+            }
+        break;
 
-      // Set textual content of node
-      case '_':
-        element.text(el[i]);
-      break;
+        // Set textual content of node
+        case '_':
+          element.text(el[i]);
+        break;
 
-      case '%':
-        // Do nothing
-      break;
+        case '%':
+          // Do nothing
+        break;
 
-      // Append child
-      default:
-        if (util.isArray(el[i])) {
-          children = children.concat(el[i].map(function(el) {
-            return { el: el, name: i };
-          }));
-        } else {
-          children.push({el: el[i], name: i});
-        }
-      break;
+        // Append child
+        default:
+          if (util.isArray(el[i])) {
+            /*children = children.concat(el[i].map(function(el) {
+              console.log(el, i);
+              return { el: el, name: i };
+            }));*/
+            children = children.concat(el[i].map(map));
+          } else {
+            children.push({el: el[i], name: i});
+          }
+        break;
+      }
     }
+
+  function map (el) {
+    return { el: el, name: i };
   }
 
   // Find all children with no ordering

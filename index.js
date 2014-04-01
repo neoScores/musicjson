@@ -20,7 +20,13 @@ var partwise = {
   type: 'score-partwise'
 };
 
-var doctype = 'PUBLIC "' + partwise.id + '" "' + partwise.url + '"';
+var processInstr = {
+  version: '1.0',
+  encoding: 'UTF-8',
+  standalone: false
+};
+
+//var doctype = 'PUBLIC "' + partwise.id + '" "' + partwise.url + '"';
 var attrkey = '$', charkey = '_',
     orderkey = '%', orderNumberKey = '&', namekey = '#name',
     specialKeys = [attrkey, charkey, orderkey, orderNumberKey, namekey];
@@ -159,9 +165,10 @@ function toXML(root, el, nodeName) {
   if (!root) {
     // Create <?xml, DOCTYPE and root element
     element = root = builder.create(nodeName, {
-        version: '1.0',
-        encoding: 'UTF-8'
-      }, { ext: doctype });
+        version: processInstr.version,
+        encoding: processInstr.encoding,
+        standalone: processInstr.standalone
+      }, { pubID: partwise.id, sysID: partwise.url });
   } else {
     element = root.element(nodeName);
   }
@@ -233,6 +240,67 @@ function toXML(root, el, nodeName) {
 }
 
 exports.musicJSON = function(source, callback) {
+  var temp =null;
+  // Get Process Instructions
+  var processInstrString = source.match(/<\?xml [a-z0-9=\.\-\s\"\'\/\:]+\?>/gi);
+  // Convert to string and strip "<?xml " and ">"
+  processInstrString = processInstrString[0].substring(6,processInstrString[0].length-1);
+  // Get version
+  temp = processInstrString.match(/version=(\"|\')[0-9\.]+(\"|\')/i);
+  if (temp) {
+    processInstr.version = temp[0].substring(9, temp[0].length-1);
+    temp = {};
+  } else {
+    callback('Invalid <xml> version', null);
+    return;
+  }
+  // Get encoding
+  temp = processInstrString.match(/encoding=(\"|\')[a-z0-9\-]+(\"|\')/i);
+  if (temp) {
+    processInstr.encoding = temp[0].substring(10, temp[0].length-1);
+    temp = {};
+  } else {
+    callback('Invalid <xml> encoding', null);
+    return;
+  }
+  // Get standalone // optional
+  temp = processInstrString.match(/standalone=(\"|\')[a-z0-9\-]+(\"|\')/i);
+  if (temp) {
+    processInstr.standalone = (temp[0].substring(12, temp[0].length-1) === 'no') ? false : true;
+    temp = {};
+  }
+  // Get the doctype
+  var doctypeString = source.match(/<!DOCTYPE [a-z0-9\.\-\s\"\'\/\:]+>/gi);
+  // Convert to string and strip "<!DOCTYPE " and ">"
+  doctypeString = doctypeString[0].substring(10,doctypeString[0].length-1);
+  // Get rootElement
+  temp = doctypeString.match(/[a-z\-]+/i);
+  if (temp) {
+    partwise.type = temp[0];
+    temp = null;
+  } else {
+    callback('Invalid <!DOCTYPE> rootElement', null);
+    return;
+  }
+  // Get dtdName
+  temp = doctypeString.match(/(\"|\')\-[a-z0-9\s\/\.]+(\"|\')/i);
+  if (temp) {
+    partwise.id = temp[0].substring(1, temp[0].length-1);
+    temp = null;
+  } else {
+    callback('Invalid <!DOCTYPE> dtdName', null);
+    return;
+  }
+  // Get dtdLocation
+  temp = doctypeString.match(/(\"|\')[a-z0-9\:\/\.]+(\"|\')/i);
+  if (temp) {
+    partwise.url = temp[0].substring(1, temp[0].length-1);
+    temp = null;
+  } else {
+    callback('Invalid <!DOCTYPE> dtdLocation', null);
+    return;
+  }
+
   var settings = { preserveOrder: true };
 
   if (typeof source === 'object') {
@@ -247,6 +315,6 @@ exports.musicJSON = function(source, callback) {
 exports.musicXML = function musicXML(source, callback) {
   var root = toXML(null, source[partwise.type], partwise.type);
   var xml = root.end({pretty: true, indent: '  ', newline:'\n'});
+  //console.log(xml);
   callback(null, xml);
 };
-

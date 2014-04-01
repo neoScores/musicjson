@@ -14,47 +14,50 @@ var builder = require('xmlbuilder'),
   events  = require('events'),
   util    = require('util');
 
-var partwise = {
-  id: '-//Recordare//DTD MusicXML 2.0 Partwise//EN',
-  url: 'http://www.musicxml.org/dtds/partwise.dtd',
-  type: 'score-partwise'
-};
-
-var processInstr = {
+var processInstr = { // Default ProcessingIntructions
   version: '1.0',
   encoding: 'UTF-8',
   standalone: false
 };
 
-//var doctype = 'PUBLIC "' + partwise.id + '" "' + partwise.url + '"';
-var attrkey = '$', charkey = '_',
-    orderkey = '%', orderNumberKey = '&', namekey = '#name',
+var partwise = { // Default DOCTYPE
+  id: '-//Recordare//DTD MusicXML 2.0 Partwise//EN',
+  url: 'http://www.musicxml.org/dtds/partwise.dtd',
+  type: 'score-partwise'
+};
+
+//var doctype = 'PUBLIC "' + partwise.id + '" "' + partwise.url + '"'; // dynamically
+var attrkey = '$',
+    charkey = '_',
+    orderkey = '%',
+    orderNumberKey = '&',
+    namekey = '#name',
     specialKeys = [attrkey, charkey, orderkey, orderNumberKey, namekey];
 
 function assignOrderNumber(obj, name, parent) {
-  if (name in parent) {
-    if (!(orderNumberKey in parent)) {
-      parent[orderNumberKey] = 0;
+  //if (name in parent) { // Always assign orderNumber
+  if (!(orderNumberKey in parent)) {
+    parent[orderNumberKey] = 0;
 
-      for (var child in parent)
-        if (parent.hasOwnProperty(child)) {
-          if (specialKeys.indexOf(child) !== -1) {
-            continue;
-          }
+    for (var child in parent)
+      if (parent.hasOwnProperty(child)) {
+        if (specialKeys.indexOf(child) !== -1) {
+          continue;
+        }
 
-        parent[orderNumberKey]++;
-        parent[child][orderkey] = parent[orderNumberKey];
-      }
+      parent[orderNumberKey]++;
+      parent[child][orderkey] = parent[orderNumberKey];
     }
+  }
 
-    parent[orderNumberKey]++;
-    obj[orderkey] = parent[orderNumberKey];
-  } else {
+  parent[orderNumberKey]++;
+  obj[orderkey] = parent[orderNumberKey];
+  /*} else { // Always assign orderNumber
     if (orderNumberKey in parent) {
       parent[orderNumberKey]++;
       obj[orderkey] = parent[orderNumberKey];
     }
-  }
+  }*/
 }
 
 // XML Parser for parsing MusicXML documents
@@ -107,22 +110,20 @@ Parser.prototype.close = function(node) {
   var obj = this.stack.pop(), name = obj[namekey], parent;
 
   delete obj[namekey];
-  if (orderNumberKey in obj) {
-    delete obj[orderNumberKey];
-  }
+  if (orderNumberKey in obj) delete obj[orderNumberKey];
 
   parent = this.stack[this.stack.length - 1];
 
   if (!obj[charkey].trim().length) { // No text content
     delete obj[charkey];
-  } else if (Object.keys(obj).length === 1) { // Text node
-    obj = obj[charkey];
-  }
+  } /*else if (Object.keys(obj).length === 1) { // Text node
+    obj[charkey] = obj[charkey];
+  }*///Don't do this, you can't assign an order to a string! eg: string.% = 1 won't work
 
   // If the object is empty, translate it to "true"
-  if (obj && typeof obj === 'object' && !Object.keys(obj).length) {
+  /*if (obj && typeof obj === 'object' && !Object.keys(obj).length) {
     obj = true;
-  }
+  }*///Don't do this, you can't assign an order to a boolean! eg: boolean.% = 5 won't work
 
   if (this.stack.length > 0) {
     // Assign order number, so that tag order is preserved
@@ -201,7 +202,6 @@ function toXML(root, el, nodeName) {
         default:
           if (util.isArray(el[i])) {
             /*children = children.concat(el[i].map(function(el) {
-              console.log(el, i);
               return { el: el, name: i };
             }));*/
             children = children.concat(el[i].map(map));
@@ -323,6 +323,5 @@ exports.musicJSON = function(source, callback) {
 exports.musicXML = function musicXML(source, callback) {
   var root = toXML(null, source[partwise.type], partwise.type);
   var xml = root.end({pretty: true, indent: '  ', newline:'\n'});
-  //console.log(xml);
   callback(null, xml);
 };

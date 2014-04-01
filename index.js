@@ -309,7 +309,15 @@ exports.musicJSON = function(source, callback) {
   }
 
   var parser = new Parser(settings);
-  parser.parse(source, callback);
+  var errors = [];
+  function result(err, json) {
+    if (err) errors.push(err);
+    else {
+      if (errors[0]) callback(errors, null);
+      else callback(null, json);
+    }
+  }
+  parser.parse(source, result);
 };
 
 exports.musicXML = function musicXML(source, callback) {

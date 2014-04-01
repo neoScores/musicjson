@@ -1,6 +1,6 @@
 {
   "name": "musicjson3",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "MusicXML to MusicJSON bi-directional converter",
   "homepage": "https://github.com/neoscores/musicjson",
   "main": "index.js",

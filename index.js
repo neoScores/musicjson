@@ -4,13 +4,14 @@
  * https://github.com/saebekassebil/musicjson
  *
  * Copyright (c) 2013 Saebekassebil
+ * Copyright (c) 2014 neoScores
  * Licensed under the MIT license.
  */
 
-var builder = require('xmlbuilder')
-  , sax     = require('sax')
-  , events  = require('events')
-  , util    = require('util');
+var builder = require('xmlbuilder'),
+  sax     = require('sax'),
+  events  = require('events'),
+  util    = require('util');
 
 var partwise = {
   id: '-//Recordare//DTD MusicXML 2.0 Partwise//EN',
@@ -236,6 +237,7 @@ exports.musicJSON = function(source, callback) {
 
 exports.musicXML = function musicXML(source, callback) {
   var root = toXML(null, source[partwise.type], partwise.type);
-  callback(null, root);
+  var xml = root.end({pretty: true, indent: '  ', newline:'\n'});
+  callback(null, xml);
 };
 

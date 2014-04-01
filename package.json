@@ -1,9 +1,29 @@
 {
-  "name": "musicjson",
-  "version": "0.2.1",
+  "name": "musicjson3",
+  "version": "0.1.4",
   "description": "MusicXML to MusicJSON bi-directional converter",
-  "homepage": "https://github.com/saebekassebil/musicjson",
+  "homepage": "https://github.com/neoscores/musicjson",
   "main": "index.js",
+  "contributors": [
+    {
+      "name": "Hans Vereyken",
+      "email": "hans@neoscores.com"
+    },
+    {
+      "name": "Bob Hamblok",
+      "email": "bob@neoscores.com"
+    },
+    {
+      "name": "Jethro Van Thuyne",
+      "email": "jethro@neoscores.com"
+    }
+  ],
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/neoscores/musicjson/blob/master/LICENSE"
+    }
+  ],
   "dependencies": {
     "commander": ">=1.1.0",
     "sax": ">=0.5.0",
@@ -11,11 +31,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/saebekassebil/musicjson.git"
+    "url": "git://github.com/neoscores/musicjson.git"
   },
   "preferGlobal": true,
   "bin": {
     "musicjson": "./bin/musicjson"
+  },
+  "bugs": {
+    "url": "https://github.com/neoscores/musicjson/issues"
   },
   "keywords": [
     "musicjson",
@@ -25,10 +48,11 @@
     "translater"
   ],
   "author": {
-    "name": "Jakob Miland",
-    "email": "saebekassebil@gmail.com",
-    "url": "http://saebekassebil.me"
+    "name": "neoScores",
+    "email": "bob@neoscores.com",
+    "url": "http://www.neoscores.com"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "readmeFilename": "README.md"
 }
 

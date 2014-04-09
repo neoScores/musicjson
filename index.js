@@ -32,7 +32,8 @@ var attrkey = '$',
     orderkey = '%',
     orderNumberKey = '&',
     namekey = '#name',
-    specialKeys = [attrkey, charkey, orderkey, orderNumberKey, namekey];
+    linekey = '#l',
+    specialKeys = [attrkey, charkey, orderkey, orderNumberKey, namekey, linekey];
 
 function assignOrderNumber(obj, name, parent) {
   //if (name in parent) { // Always assign orderNumber
@@ -95,6 +96,8 @@ Parser.prototype.open = function(node) {
   obj[namekey] = node.name.toLowerCase();
   obj[charkey] = '';
 
+  obj[linekey] = this.sax.line + 1;
+
   // Iterate over all the attributes
   for (key in node.attributes) 
     if (node.attributes.hasOwnProperty(key)) {
@@ -107,6 +110,7 @@ Parser.prototype.open = function(node) {
 };
 
 Parser.prototype.close = function(node) {
+
   var obj = this.stack.pop(), name = obj[namekey], parent;
 
   delete obj[namekey];
@@ -195,6 +199,7 @@ function toXML(root, el, nodeName) {
         break;
 
         case '%':
+        case '#l':
           // Do nothing
         break;
 
